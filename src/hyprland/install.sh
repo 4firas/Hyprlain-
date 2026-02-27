@@ -11,11 +11,12 @@ fi
 downdependencies "${GITSRC}/pacpkgs.lst" "${GITSRC}/aurpkgs.lst"
 
 getpkg zsh
-handleold "$BAKORDEL" "${HOME}/.oh-my-zsh"
 if [ ! -d "${HOME}/.oh-my-zsh" ]; then
+	echo -e "${YELLOW}Installing Oh-My-Zsh...${NOCOLOR}"
+	handleold "$BAKORDEL" "${HOME}/.oh-my-zsh"
 	RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 else
-	echo -e "${YELLOW}Oh-My-Zsh already installed, skipping...${NOCOLOR}"
+	echo -e "${GREEN}Oh-My-Zsh already installed, skipping...${NOCOLOR}"
 fi
 
 substitute "$BAKORDEL" "${HOME}/.config/wlogout/style.css" "${GITSRC}/wlogout/style.css"

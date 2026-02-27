@@ -161,6 +161,11 @@ function substitute () {
 	DIRFILE="$2"
 	GITFILE="$3"
 
+	# If files are already identical, skip the work
+	if [ -e "$DIRFILE" ] && diff -rq "$GITFILE" "$DIRFILE" &>/dev/null; then
+		return 0
+	fi
+
 	handleold "$ACTOPTION" "$DIRFILE"
 	sudo cp -r "$GITFILE" "$DIRFILE"
 }
@@ -169,28 +174,56 @@ function downdependencies () {
 	PACPKGS="$1"
 	AURPKGS="$2"
 
-	echo -e "${YELLOW}Syncing pacman databases...${NOCOLOR}"
-	sudo pacman -Sy
+	# Lazy sync: only sync if not done in the last hour
+	local SYNC_CACHE="/tmp/.hyprlain_pacman_sync"
+	local CURRENT_TIME=$(date +%s)
+	local LAST_SYNC=0
+	[ -f "$SYNC_CACHE" ] && LAST_SYNC=$(cat "$SYNC_CACHE")
+	
+	if [ $((CURRENT_TIME - LAST_SYNC)) -gt 3600 ]; then
+		echo -e "${YELLOW}Syncing pacman databases...${NOCOLOR}"
+		sudo pacman -Sy && echo "$CURRENT_TIME" > "$SYNC_CACHE"
+	else
+		echo -e "${GREEN}Pacman databases synced recently, skipping...${NOCOLOR}"
+	fi
 
 	# Read all packages (excluding empty lines) into an array
-	mapfile -t pacman_list < <(grep -v '^[[:space:]]*$' "$PACPKGS")
-	if [ ${#pacman_list[@]} -gt 0 ]; then
+	mapfile -t pacman_list < <(grep -v '^[[:space:]]*$' "$PACPKGS" 2>/dev/null)
+	
+	# Filter out already installed packages to avoid redundant pacman calls
+	local to_install_pacman=()
+	for pkg in "${pacman_list[@]}"; do
+		if ! pacman -Qq "$pkg" &>/dev/null; then
+			to_install_pacman+=("$pkg")
+		fi
+	done
+
+	if [ ${#to_install_pacman[@]} -gt 0 ]; then
 		# Resolve known conflicts: archinstall pre-installs jack2 which conflicts with pipewire-jack
-		if printf '%s\n' "${pacman_list[@]}" | grep -qx "pipewire-jack" && pacman -Qq jack2 &>/dev/null; then
+		if printf '%s\n' "${to_install_pacman[@]}" | grep -qx "pipewire-jack" && pacman -Qq jack2 &>/dev/null; then
 			echo -e "${YELLOW}Removing conflicting jack2 in favour of pipewire-jack...${NOCOLOR}"
 			sudo pacman -Rdd --noconfirm jack2 || true
 		fi
-		echo -e "${YELLOW}Installing PACMAN packages...${NOCOLOR}"
-		sudo pacman -S --needed --noconfirm "${pacman_list[@]}" || echo -e "${RED}Warning: some pacman packages failed to install. Proceeding anyway.${NOCOLOR}"
+		echo -e "${YELLOW}Installing missing PACMAN packages: ${to_install_pacman[*]}${NOCOLOR}"
+		sudo pacman -S --needed --noconfirm "${to_install_pacman[@]}" || echo -e "${RED}Warning: some pacman packages failed to install.${NOCOLOR}"
+	else
+		echo -e "${GREEN}All local packages already installed.${NOCOLOR}"
 	fi
 
-	echo -e "${YELLOW}Syncing AUR databases...${NOCOLOR}"
-	yay -Sy
+	# AUR packages
+	mapfile -t aur_list < <(grep -v '^[[:space:]]*$' "$AURPKGS" 2>/dev/null)
+	local to_install_aur=()
+	for pkg in "${aur_list[@]}"; do
+		if ! pacman -Qq "$pkg" &>/dev/null; then
+			to_install_aur+=("$pkg")
+		fi
+	done
 
-	mapfile -t aur_list < <(grep -v '^[[:space:]]*$' "$AURPKGS")
-	if [ ${#aur_list[@]} -gt 0 ]; then
-		echo -e "${YELLOW}Installing AUR packages...${NOCOLOR}"
-		yay -S --needed --noconfirm "${aur_list[@]}" || echo -e "${RED}Warning: some AUR packages failed to install. Proceeding anyway.${NOCOLOR}"
+	if [ ${#to_install_aur[@]} -gt 0 ]; then
+		echo -e "${YELLOW}Installing missing AUR packages: ${to_install_aur[*]}${NOCOLOR}"
+		yay -S --needed --noconfirm "${to_install_aur[@]}" || echo -e "${RED}Warning: some AUR packages failed to install.${NOCOLOR}"
+	else
+		echo -e "${GREEN}All AUR packages already installed.${NOCOLOR}"
 	fi
 }
 
