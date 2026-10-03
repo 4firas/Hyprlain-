@@ -29,8 +29,10 @@ if ! command -v yay &> /dev/null; then
 	rm -rf /tmp/yay
 fi
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Run the main installation script and default to backup
-cd src
+cd "$SCRIPT_DIR/src"
 echo -e "${YELLOW}Running main installation script...${NOCOLOR}"
 ./install.sh backup "$@"
 
@@ -41,7 +43,7 @@ sudo systemctl enable sddm.service || true
 # Change the default shell to zsh (since Oh-My-Zsh is installed)
 if command -v zsh &> /dev/null; then
     echo -e "${YELLOW}Changing default shell to zsh...${NOCOLOR}"
-    sudo chsh -s $(which zsh) $USER
+    sudo chsh -s "$(which zsh)" "${SUDO_USER:-$USER}" 2>/dev/null || chsh -s "$(which zsh)" 2>/dev/null || true
 fi
 
 echo -e "${GREEN}Installation complete! You can now reboot into your new Hyprland environment.${NOCOLOR}"

@@ -52,9 +52,14 @@ EOF"
 
 # 4. UI Fix: Waybar
 echo -e "${YELLOW}Applying dynamic width fix for Waybar...${NOCOLOR}"
-cp /home/l4in/Hyprlain-/src/hyprland/src/waybar/config.jsonc /home/l4in/.config/waybar/config.jsonc
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TARGET_USER="${SUDO_USER:-$USER}"
+TARGET_HOME=$(eval echo "~$TARGET_USER")
+
+mkdir -p "$TARGET_HOME/.config/waybar"
+cp "$SCRIPT_DIR/src/hyprland/src/waybar/config.jsonc" "$TARGET_HOME/.config/waybar/config.jsonc"
 
 # 5. Ownership
-sudo chown -R l4in:l4in /home/l4in/.config /home/l4in/Hyprlain-
+sudo chown -R "$TARGET_USER:$TARGET_USER" "$TARGET_HOME/.config" "$SCRIPT_DIR"
 
 echo -e "${GREEN}All deep hardware & UI fixes applied! Please REBOOT now.${NOCOLOR}"

@@ -23,7 +23,6 @@ A complete Hyprland rice for Arch Linux inspired by Serial Experiments Lain.
 ## ⚡ One-Command Install
 
 On a fresh **Arch Linux** install with the **Hyprland** profile selected during `archinstall`, open a terminal and run:
-
 ```sh
 sudo pacman -Syu --needed git && git clone https://github.com/4firas/Hyprlain-.git && cd Hyprlain- && bash auto-install.sh
 ```

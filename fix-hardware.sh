@@ -39,12 +39,17 @@ echo -e "${YELLOW}Rebuilding Audio driver via DKMS...${NOCOLOR}"
 sudo dkms install -m snd-hda-macbookpro -v 0.1 -k "$(uname -r)" --force
 
 # 4. Ownership Fix
-echo -e "${YELLOW}Restoring user l4in ownership to home directory...${NOCOLOR}"
-sudo chown -R l4in:l4in /home/l4in/.config /home/l4in/Hyprlain-
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TARGET_USER="${SUDO_USER:-$USER}"
+TARGET_HOME=$(eval echo "~$TARGET_USER")
+
+echo -e "${YELLOW}Restoring user $TARGET_USER ownership to home directory...${NOCOLOR}"
+sudo chown -R "$TARGET_USER:$TARGET_USER" "$TARGET_HOME/.config" "$SCRIPT_DIR"
 
 # 5. UI Fix: Apply Waybar Width Fix
 echo -e "${YELLOW}Applying dynamic width fix for Waybar...${NOCOLOR}"
-cp /home/l4in/Hyprlain-/src/hyprland/src/waybar/config.jsonc /home/l4in/.config/waybar/config.jsonc
+mkdir -p "$TARGET_HOME/.config/waybar"
+cp "$SCRIPT_DIR/src/hyprland/src/waybar/config.jsonc" "$TARGET_HOME/.config/waybar/config.jsonc"
 killall -SIGUSR2 waybar 2>/dev/null || true
 
 echo -e "${GREEN}All hardware & UI fixes applied successfully!${NOCOLOR}"

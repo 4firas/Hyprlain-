@@ -5,7 +5,7 @@
 CHEATSHEET="$HOME/.config/hypr/cheatsheet.md"
 
 if command -v glow &>/dev/null; then
-    kitty --class cheatsheet --hold -e glow "$CHEATSHEET"
+    kitty --class cheatsheet --hold -e glow -p "$CHEATSHEET"
 else
-    kitty --class cheatsheet --hold -e less "$CHEATSHEET"
+    kitty --class cheatsheet --hold -e less -R "$CHEATSHEET"
 fi
