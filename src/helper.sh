@@ -252,7 +252,7 @@ function downdependencies () {
 			aur) to_install_aur+=("$name");;
 			skip) echo -e "${YELLOW}Skipping '${pkg}': no ${ARCH} build exists.${NOCOLOR}";;
 		esac
-	done < <(cat "$PACPKGS" "$AURPKGS" 2>/dev/null | grep -v '^[[:space:]]*$')
+	done < <(awk 1 "$PACPKGS" "$AURPKGS" 2>/dev/null | grep -v '^[[:space:]]*$')
 
 	# rofi from the AUR has to land before the repo packages that depend on rofi
 	if printf '%s\n' "${to_install_aur[@]}" | grep -qx "rofi-git"; then
