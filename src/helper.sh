@@ -261,6 +261,8 @@ function downdependencies () {
 	fi
 
 	if [ ${#to_install_pacman[@]} -gt 0 ]; then
+		# yay can still hold the pacman lock for a moment after it returns
+		while [ -f /var/lib/pacman/db.lck ] && pgrep -x pacman &>/dev/null; do sleep 1; done
 		# Resolve known conflicts: archinstall pre-installs jack2 which conflicts with pipewire-jack
 		if printf '%s\n' "${to_install_pacman[@]}" | grep -qx "pipewire-jack" && pacman -Qq jack2 &>/dev/null; then
 			echo -e "${YELLOW}Removing conflicting jack2 in favour of pipewire-jack...${NOCOLOR}"
