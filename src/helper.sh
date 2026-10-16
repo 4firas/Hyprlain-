@@ -171,8 +171,8 @@ function substitute () {
 }
 
 ARCH=$(uname -m)
-# AUR packages that only repackage prebuilt x86_64 binaries
-X86_BINARY_ONLY="spotify localsend-bin"
+# AUR packages that only repackage prebuilt x86_64 binaries (no aarch64 source)
+X86_BINARY_ONLY="spotify"
 # Most AUR packages marked x86_64-only build fine from source on other architectures
 AURFLAGS=()
 [ "$ARCH" != "x86_64" ] && AURFLAGS=(--mflags "--ignorearch")

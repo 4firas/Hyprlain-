@@ -40,7 +40,7 @@ That's it. Reboot when it finishes and you're done.
 The same command works on **Arch Linux ARM** (aarch64), including a UTM virtual machine on an Apple Silicon Mac. On ARM the installer:
 
 - Swaps in the packages Arch Linux ARM actually ships: `rofi-git` (rofi 2.x with Wayland) for `rofi-wayland`, the `-git` rofi plugins to match it, and `awww` for `swww` (renamed upstream, with `swww` commands kept working).
-- Builds AUR packages that are marked x86_64-only from source, and skips the ones that are only prebuilt x86 binaries (Spotify, LocalSend).
+- Builds AUR packages that are marked x86_64-only from source, and skips the ones that are only prebuilt x86 binaries (Spotify).
 - Opens Firefox for the browser and music binds when Chrome isn't installed.
 
 Inside any virtual machine it also writes `~/.config/hypr/vm.conf`: a software cursor, software rendering when the hypervisor offers no 3D, and on aarch64, **left Option as Super** because macOS keeps the Command key.
