@@ -9,6 +9,7 @@ if ! helpersourced; then
 fi
 
 downdependencies "${GITSRC}/pacpkgs.lst" "${GITSRC}/aurpkgs.lst"
+swwwcompat
 
 getpkg zsh
 if [ ! -d "${HOME}/.oh-my-zsh" ]; then

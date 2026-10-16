@@ -170,6 +170,58 @@ function substitute () {
 	sudo cp -r "$GITFILE" "$DIRFILE"
 }
 
+ARCH=$(uname -m)
+# AUR packages that only repackage prebuilt x86_64 binaries
+X86_BINARY_ONLY="spotify localsend-bin"
+# Most AUR packages marked x86_64-only build fine from source on other architectures
+AURFLAGS=()
+[ "$ARCH" != "x86_64" ] && AURFLAGS=(--mflags "--ignorearch")
+
+function inrepos () {
+	pacman -Si "$1" &>/dev/null
+}
+
+function resolvepkg () { # resolvepkg <PKG> -> "repo|aur|skip <NAME>"
+	local PKG="$1"
+	local ROFIVER
+	case "$PKG" in
+		swww)
+			# swww was renamed awww upstream; swwwcompat keeps the old commands working
+			if ! inrepos swww && inrepos awww; then echo "repo awww"; return; fi
+			;;
+		rofi-wayland|rofi-emoji|rofi-calc)
+			if ! inrepos rofi-wayland; then
+				# rofi-wayland was merged into rofi 2.x; older repos (Arch Linux ARM) still ship 1.7
+				ROFIVER=$(pacman -Si rofi 2>/dev/null | awk '/^Version/ {print $3; exit}')
+				if [ -n "$ROFIVER" ] && [ "$(vercmp "$ROFIVER" 2)" -ge 0 ]; then
+					[ "$PKG" == "rofi-wayland" ] && { echo "repo rofi"; return; }
+				else
+					case "$PKG" in
+						rofi-wayland) echo "aur rofi-git"; return;;
+						*) echo "aur ${PKG}-git"; return;;
+					esac
+				fi
+			fi
+			;;
+	esac
+	if [ "$ARCH" != "x86_64" ] && [[ " $X86_BINARY_ONLY " == *" $PKG "* ]]; then
+		echo "skip $PKG"; return
+	fi
+	if inrepos "$PKG"; then echo "repo $PKG"; else echo "aur $PKG"; fi
+}
+
+function swwwcompat () {
+	# Hyprlain's wallpaper config calls swww; point it at awww where only awww exists
+	local BIN
+	for BIN in swww swww-daemon; do
+		if ! command -v "$BIN" &> /dev/null && command -v "${BIN/swww/awww}" &> /dev/null; then
+			echo -e "${YELLOW}Linking ${BIN} to ${BIN/swww/awww}...${NOCOLOR}"
+			printf '#!/bin/sh\nexec %s "$@"\n' "$(command -v "${BIN/swww/awww}")" | sudo tee "/usr/local/bin/${BIN}" > /dev/null
+			sudo chmod 755 "/usr/local/bin/${BIN}"
+		fi
+	done
+}
+
 function downdependencies () {
 	PACPKGS="$1"
 	AURPKGS="$2"
@@ -187,16 +239,26 @@ function downdependencies () {
 		echo -e "${GREEN}Pacman databases synced recently, skipping...${NOCOLOR}"
 	fi
 
-	# Read all packages (excluding empty lines) into an array
-	mapfile -t pacman_list < <(grep -v '^[[:space:]]*$' "$PACPKGS" 2>/dev/null)
-	
-	# Filter out already installed packages to avoid redundant pacman calls
+	# Read all packages (excluding empty lines), resolve each to what this system's
+	# repos carry, and skip the ones already installed
 	local to_install_pacman=()
-	for pkg in "${pacman_list[@]}"; do
-		if ! pacman -Qq "$pkg" &>/dev/null; then
-			to_install_pacman+=("$pkg")
-		fi
-	done
+	local to_install_aur=()
+	local pkg where name
+	while read -r pkg; do
+		read -r where name < <(resolvepkg "$pkg")
+		pacman -Qq "$name" &>/dev/null && continue
+		case "$where" in
+			repo) to_install_pacman+=("$name");;
+			aur) to_install_aur+=("$name");;
+			skip) echo -e "${YELLOW}Skipping '${pkg}': no ${ARCH} build exists.${NOCOLOR}";;
+		esac
+	done < <(cat "$PACPKGS" "$AURPKGS" 2>/dev/null | grep -v '^[[:space:]]*$')
+
+	# rofi from the AUR has to land before the repo packages that depend on rofi
+	if printf '%s\n' "${to_install_aur[@]}" | grep -qx "rofi-git"; then
+		echo -e "${YELLOW}Installing rofi-git (Wayland-capable rofi 2.x)...${NOCOLOR}"
+		yay -S --needed --noconfirm --useask "${AURFLAGS[@]}" rofi-git || echo -e "${RED}Warning: rofi-git failed to install.${NOCOLOR}"
+	fi
 
 	if [ ${#to_install_pacman[@]} -gt 0 ]; then
 		# Resolve known conflicts: archinstall pre-installs jack2 which conflicts with pipewire-jack
@@ -210,18 +272,13 @@ function downdependencies () {
 		echo -e "${GREEN}All local packages already installed.${NOCOLOR}"
 	fi
 
-	# AUR packages
-	mapfile -t aur_list < <(grep -v '^[[:space:]]*$' "$AURPKGS" 2>/dev/null)
-	local to_install_aur=()
-	for pkg in "${aur_list[@]}"; do
-		if ! pacman -Qq "$pkg" &>/dev/null; then
-			to_install_aur+=("$pkg")
-		fi
-	done
-
+	# AUR packages, one at a time so a single failed build doesn't stop the rest
 	if [ ${#to_install_aur[@]} -gt 0 ]; then
 		echo -e "${YELLOW}Installing missing AUR packages: ${to_install_aur[*]}${NOCOLOR}"
-		yay -S --needed --noconfirm "${to_install_aur[@]}" || echo -e "${RED}Warning: some AUR packages failed to install.${NOCOLOR}"
+		for pkg in "${to_install_aur[@]}"; do
+			pacman -Qq "$pkg" &>/dev/null && continue
+			yay -S --needed --noconfirm "${AURFLAGS[@]}" "$pkg" || echo -e "${RED}Warning: AUR package '${pkg}' failed to install.${NOCOLOR}"
+		done
 	else
 		echo -e "${GREEN}All AUR packages already installed.${NOCOLOR}"
 	fi

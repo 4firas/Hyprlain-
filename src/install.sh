@@ -35,6 +35,7 @@ fi
 "${GITSRC}/dotfiles/install.sh" "$BAKORDEL"
 "${GITSRC}/gtkqtxdg/install.sh" "$BAKORDEL"
 "${GITSRC}/hyprland/install.sh" "$BAKORDEL"
+"${GITSRC}/vm/install.sh" "$BAKORDEL"
 "${GITSRC}/rofi/install.sh" "$BAKORDEL"
 "${GITSRC}/sddm/install.sh" "$BAKORDEL"
 "${GITSRC}/spotify/install.sh" "$BAKORDEL"

@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+# Opens the first installed browser: Chrome, then Chromium, then Firefox
+# (Chrome has no aarch64 Linux package). Translates the flags Hyprlain's binds use.
+for BROWSER in google-chrome-stable chromium firefox; do
+	command -v "$BROWSER" > /dev/null && break
+done
+
+case "$1" in
+	--private-window)
+		[ "$BROWSER" = firefox ] && exec firefox --private-window
+		exec "$BROWSER" --incognito
+		;;
+	--app=*)
+		[ "$BROWSER" = firefox ] && exec firefox --new-window "${1#--app=}"
+		exec "$BROWSER" "$1"
+		;;
+esac
+exec "$BROWSER" "$@"
