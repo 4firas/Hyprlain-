@@ -16,8 +16,9 @@ echo -e "${YELLOW}Virtual machine detected (${VIRT}), applying VM tweaks...${NOC
 
 VMCONF="${HOME}/.config/hypr/vm.conf"
 sudo mkdir -p "$(dirname "$VMCONF")"
-# The virtual monitor prefers 1280x800; keep a resolution the user already picked
-MONITOR=$(grep -m1 '^monitor *=' "$VMCONF" 2>/dev/null)
+# The virtual monitor prefers 1280x800; keep a resolution the user already picked,
+# including from the backup the hyprland module makes when it replaces ~/.config/hypr
+MONITOR=$(grep -m1 -h '^monitor *=' "$VMCONF" "${HOME}/.config/hypr.hyprlainbak/vm.conf" 2>/dev/null | head -1)
 [ -z "$MONITOR" ] && MONITOR="monitor = Virtual-1, 1920x1080@60, 0x0, 1"
 {
 	echo "# Written by Hyprlain's vm module; delete this file and its source line to undo."

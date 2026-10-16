@@ -168,6 +168,11 @@ function substitute () {
 
 	handleold "$ACTOPTION" "$DIRFILE"
 	sudo cp -r "$GITFILE" "$DIRFILE"
+	# Files under the user's home should stay editable without sudo
+	if [[ "$DIRFILE" == "$HOME"/* ]]; then
+		sudo chown -R "$USER:$USER" "$DIRFILE"
+		[ "$(dirname "$DIRFILE")" != "$HOME" ] && sudo chown "$USER:$USER" "$(dirname "$DIRFILE")"
+	fi
 }
 
 ARCH=$(uname -m)
