@@ -204,6 +204,10 @@ function resolvepkg () { # resolvepkg <PKG> -> "repo|aur|skip <NAME>"
 			fi
 			;;
 	esac
+	# A -git package that left the AUR but whose stable release is now in the repos
+	if [[ "$PKG" == *-git ]] && ! inrepos "$PKG" && inrepos "${PKG%-git}" && ! yay -Si --aur "$PKG" &>/dev/null; then
+		echo "repo ${PKG%-git}"; return
+	fi
 	if [ "$ARCH" != "x86_64" ] && [[ " $X86_BINARY_ONLY " == *" $PKG "* ]]; then
 		echo "skip $PKG"; return
 	fi
