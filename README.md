@@ -9,7 +9,7 @@
 <br><br>
 A complete Hyprland rice for Arch Linux inspired by Serial Experiments Lain.
 <br>
-<sup>Forked from <a href="https://github.com/Ascaniolamp/Hyprlain">Ascaniolamp/Hyprlain</a> with Omarchy-style keybinds, robustness fixes, and a one-command installer.</sup>
+<sup>Forked from <a href="https://github.com/Ascaniolamp/Hyprlain">Ascaniolamp/Hyprlain</a> with a Mac-style keyboard and desktop, robustness fixes, and a one-command installer.</sup>
 <br>
 <hr>
 <img src="./src/hyprland/cmdwired.gif" width="400">
@@ -43,57 +43,38 @@ The same command works on **Arch Linux ARM** (aarch64), including a UTM virtual 
 - Builds AUR packages that are marked x86_64-only from source, and skips the ones that are only prebuilt x86 binaries (Spotify).
 - Opens Firefox for the browser and music binds when Chrome isn't installed.
 
-Inside any virtual machine it also writes `~/.config/hypr/vm.conf`: a software cursor, software rendering when the hypervisor offers no 3D, and on aarch64, **left Option as Super** because macOS keeps the Command key.
+Inside any virtual machine it also writes `~/.config/hypr/vm.conf`: a software cursor, OpenGL 3.3 for apps on virgl (or software rendering when the hypervisor offers no 3D), and a clipboard shared with the host through the SPICE agent. On aarch64 it keeps the kernel loaded for kexec, because UTM hangs when the guest resets itself: restarting goes straight into the new boot instead.
 
-## 🎮 Keybinds (Omarchy-style)
+UTM passes ⌘ shortcuts to the guest only while it captures input; otherwise ⌘Space, ⌘Tab and the rest go to macOS, and ⌘Q, ⌘W, ⌘H go to UTM's own menus. In UTM → **Settings → Input**, turn on both **Capture input automatically when entering full screen** and **…when window is focused**: clicking into the VM then captures, and ⌃⌥ hands the keyboard and pointer back to macOS (press it again to return). That's also why no Hyprlain shortcut holds ⌃ and ⌥ together, and why lock and log out have no shortcut (⌃⌘Q and ⇧⌘Q would hit macOS whenever input isn't captured). Leave **Use Command+Option (⌘+⌥) for input capture/release** off, since Hyprlain uses ⌥⌘ shortcuts.
 
-Press **Super + K** to open this cheatsheet inside Hyprland at any time.
+## ⌨️ Works like a Mac
 
-### Navigating
-| Hotkey | Function |
+⌘ is Command, ⌥ Option, ⌃ Control. The everyday shortcuts are the macOS ones in every app, the terminal included: ⌘C, ⌘V, ⌘Z, ⌘F, ⌘T, ⌘W, ⌥ and ⌘ arrows through text, ⌥⌫ and ⌘⌫. Press **⌘⇧/** in Hyprlain for the full cheatsheet.
+
+| Keys | What it does |
 | --- | --- |
-| Super + Space | Application launcher |
-| Super + Escape | Lock / suspend / restart / shutdown (wlogout) |
-| Super + Ctrl + L | Lock computer |
-| Super + W | Close window |
-| Super + T | Toggle tiling / floating |
-| Super + O | Pin window (sticky float) |
-| Super + F | Fullscreen |
-| Super + 1–9 | Jump to workspace |
-| Super + Tab / Shift+Tab | Next / previous workspace |
-| Super + Shift + 1–9 | Move window to workspace |
-| Super + Arrow | Move focus |
-| Super + Shift + Arrow | Swap windows |
-| Super + Equal / Minus | Resize windows |
-| Super + G | Toggle window grouping |
-| Super + S | Scratchpad |
+| ⌘ Space | Spotlight |
+| ⌘Tab | App switcher: tap for the last app, hold ⌘ to pick one |
+| ⌘Q, ⌘H, ⌘M | Quit, hide, minimise |
+| ⌥⌘⎋ | Force Quit |
+| ⌃↑ or the bottom-left corner | Mission Control |
+| ⌃←, ⌃→ | Previous or next desktop |
+| ⌘⇧3, ⌘⇧4, ⌘⇧5 | Screenshot the screen, an area, a window (add ⌃ to copy) |
+| ⌘⇧V | Clipboard history |
+| ⌃ Space | Next input source |
 
-### System Controls
-| Hotkey | Function |
-| --- | --- |
-| Super + Ctrl + A | Audio controls |
-| Super + Ctrl + B | Bluetooth controls |
-| Super + Ctrl + W | Wifi controls |
-| Super + Ctrl + T | System monitor (btop) |
-
-### Launching Apps
-| Hotkey | Function |
-| --- | --- |
-| Super + Return | Terminal |
-| Super + Shift + B | Browser |
-| Super + Shift + F | File manager |
-| Super + Shift + M | Music (Spotify) |
+The menu bar shows the Lain menu (About, Force Quit, Lock, Log Out, Restart, Shut Down…) and the focused app's name, and the Dock appears when the pointer reaches the bottom edge. Windows tile instead of overlapping: ⌥⌘F floats one.
 
 ## 📦 What Gets Installed
 
 The script automatically sets up:
 
-- **Window Manager**: Hyprland + Waybar + Rofi + Dunst
+- **Desktop**: Hyprland + Waybar menu bar + Rofi Spotlight + nwg-dock Dock + Dunst, with a ⌘Tab switcher and Mission Control
 - **Terminal**: Kitty with Oh-My-Zsh
 - **Login Screen**: Custom SDDM theme
 - **Boot Screen**: Lain GRUB theme
 - **Theming**: Full GTK + Qt dark theme, custom icons, custom cursors
-- **Apps**: Firefox, Dolphin, Spotify (with Spicetify), Vesktop (Discord)
+- **Apps**: Firefox, Nautilus, Spotify (with Spicetify), Vesktop (Discord)
 - **Audio**: PipeWire + PipeWire-JACK (auto-resolves jack2 conflicts)
 - **Wallpaper**: Animated wallpaper via swww
 - **Utilities**: Screenshots, color picker, clipboard manager, idle lock
@@ -102,7 +83,6 @@ The script automatically sets up:
 
 - **[Ascaniolamp](https://github.com/Ascaniolamp/Hyprlain)** — Original Hyprlain rice
 - **[Fauux](https://fauux.neocities.org)** — All the amazing Serial Experiments Lain artwork
-- **[Omarchy](https://omarchy.com)** — Keybind layout inspiration
 
 ## License
 

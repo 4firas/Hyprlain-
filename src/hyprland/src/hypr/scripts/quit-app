@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# ⌘Q: close every window of the focused app, like quitting it on a Mac.
+# While the ⌘Tab switcher is open, ⌘Q quits the app selected there instead
+[ "$("$(dirname "$0")/app-switcher" quit)" == "1" ] && exit 0
+class=$(hyprctl activewindow -j | jq -r '.class // empty')
+[ -z "$class" ] && exit 0
+hyprctl clients -j | jq -r --arg class "$class" '.[] | select(.class == $class) | .address' |
+	while read -r address; do
+		hyprctl dispatch closewindow "address:$address" > /dev/null
+	done

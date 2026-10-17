@@ -1,0 +1,138 @@
+/******************************************************************************
+ * Spotlight: ⌘Space launcher, also used by the clipboard, emoji and force quit
+ * pickers. Colours come from the Hyprlain theme.
+ ******************************************************************************/
+
+@import "themes/Hyprlain.rasi"
+
+configuration {
+	show-icons:          true;
+	modes:               [drun, calc, filebrowser];
+	display-drun:        "";
+	display-calc:        "󰃬";
+	display-filebrowser: "";
+	display-emoji:       "󰞅";
+	display-dmenu:       "";
+	drun-display-format: "{name}";
+	matching:            "fuzzy";
+	sort:                true;
+	sorting-method:      "fzf";
+	hover-select:        true;
+	me-select-entry:     "";
+	me-accept-entry:     [MousePrimary];
+	kb-mode-next:        "Tab";
+	kb-mode-previous:    "ISO_Left_Tab";
+	kb-row-tab:          "";
+	kb-element-next:     "";
+	kb-element-prev:     "";
+}
+
+* {
+	font: "AdwaitaMono Nerd Font 13";
+}
+
+window {
+	location:         center;
+	anchor:           center;
+	y-offset:         -16%;
+	width:            44%;
+	border:           2px;
+	border-color:     @foreprimary;
+	background-color: rgba(0, 0, 0, 92%);
+}
+
+mainbox {
+	children:         [inputbar, listview];
+	padding:          10px;
+	spacing:          8px;
+	background-color: transparent;
+}
+
+inputbar {
+	children:         [prompt, entry];
+	spacing:          12px;
+	padding:          12px 14px;
+	background-color: @backsecondary;
+	border:           0px 0px 1px 0px;
+	border-color:     @foreoctonary;
+}
+
+prompt {
+	text-color:       @foreprimary;
+	background-color: transparent;
+	font:             "AdwaitaMono Nerd Font 17";
+}
+
+entry {
+	placeholder:       "Spotlight Search";
+	placeholder-color: @backseptenary;
+	text-color:        @highprimary;
+	background-color:  transparent;
+	cursor-color:      @foreprimary;
+	font:              "AdwaitaMono Nerd Font 17";
+}
+
+listview {
+	lines:            8;
+	columns:          1;
+	fixed-height:     false;
+	dynamic:          true;
+	scrollbar:        false;
+	spacing:          2px;
+	background-color: transparent;
+}
+
+element {
+	padding:          8px 12px;
+	spacing:          12px;
+	background-color: transparent;
+	text-color:       @forequaternary;
+}
+
+element-icon {
+	size:             28px;
+	background-color: transparent;
+}
+
+element-text {
+	vertical-align:   0.5;
+	background-color: transparent;
+	text-color:       inherit;
+}
+
+element selected.normal, element selected.active {
+	background-color: @foredecenary;
+	text-color:       @highprimary;
+	border:           0px 0px 0px 2px;
+	border-color:     @foreprimary;
+}
+
+element alternate.normal, element normal.normal {
+	background-color: transparent;
+}
+
+mode-switcher {
+	spacing:          0px;
+	background-color: transparent;
+}
+
+button {
+	padding:          4px;
+	text-color:       @foreseptenary;
+	background-color: transparent;
+}
+
+button selected {
+	text-color:       @foreprimary;
+	background-color: @backsecondary;
+}
+
+message {
+	padding:          8px 12px;
+	background-color: transparent;
+}
+
+textbox {
+	text-color:       @forequaternary;
+	background-color: transparent;
+}

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Shares the clipboard with the host Mac in a UTM/QEMU VM (started by the vm module).
+# The SPICE agent only speaks X11, and Hyprland hands the Wayland clipboard to Xwayland
+# only while an X11 window is focused, so text is copied between the two clipboards here:
+#   Linux app copies  -> Wayland -> X11 -> spice-vdagent -> Mac
+#   Mac copies        -> spice-vdagent -> X11 -> Wayland -> Linux apps
+export DISPLAY=${DISPLAY:-:0}
+
+# Command substitution drops trailing newlines; the "." keeps the text exact
+x11_text() { timeout 1 xclip -o -selection clipboard 2>/dev/null; printf .; }
+wayland_text() { wl-paste --no-newline 2>/dev/null; printf .; }
+
+if [ "$1" == "to-x11" ]; then
+	# Called by wl-paste --watch with the new Wayland clipboard on stdin
+	text=$(cat; printf .)
+	text=${text%.}
+	[ -z "$text" ] && exit 0
+	current=$(x11_text)
+	[ "$text" == "${current%.}" ] && exit 0
+	printf %s "$text" | setsid xclip -selection clipboard -in > /dev/null 2>&1 &
+	exit 0
+fi
+
+for tool in spice-vdagent xclip clipnotify wl-copy wl-paste; do
+	command -v "$tool" > /dev/null || exit 0
+done
+pgrep -u "$UID" -x spice-vdagent > /dev/null || spice-vdagent &
+
+wl-paste --type text --watch "$0" to-x11 &
+
+# clipnotify returns each time the X11 clipboard changes hands
+while clipnotify -s clipboard; do
+	x11=$(x11_text)
+	x11=${x11%.}
+	[ -z "$x11" ] && continue
+	wayland=$(wayland_text)
+	[ "$x11" == "${wayland%.}" ] && continue
+	printf %s "$x11" | wl-copy
+done

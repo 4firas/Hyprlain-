@@ -1,0 +1,8 @@
+# Hot corners (waycorner), like System Settings → Desktop & Dock → Hot Corners.
+[mission_control]
+enter_command = ["sh", "-c", "~/.config/hypr/scripts/app-switcher overview"]
+# Bottom left: the top-left corner belongs to the Lain menu
+locations = ["bottom_left"]
+size = 4
+timeout_ms = 300
+color = "#00000000"

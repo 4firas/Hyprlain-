@@ -1,0 +1,38 @@
+/* Hyprlain Dock (nwg-dock-hyprland). Colours follow assets/palette. */
+window {
+	background-color: rgba(0, 0, 0, 0.88);
+	border: 2px solid #CE7688;
+	border-radius: 0px;
+}
+
+#box {
+	padding: 4px 6px;
+}
+
+button,
+image {
+	background: none;
+	border-style: none;
+	box-shadow: none;
+	color: #C1B48E;
+}
+
+button {
+	padding: 4px;
+	margin: 0px 2px;
+	border-radius: 0px;
+	border-bottom: 2px solid transparent;
+	transition: background-color 120ms ease-out;
+}
+
+button:hover {
+	background-color: rgba(206, 118, 136, 0.18);
+}
+
+button:focus {
+	box-shadow: none;
+}
+
+#active {
+	border-bottom: 2px solid #CE7688;
+}

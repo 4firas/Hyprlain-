@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# ⌘⇧V: clipboard history. Picking an entry copies it and pastes it into the focused app.
+pkill -x rofi && exit 0
+choice=$(cliphist list | rofi -dmenu -i -p "Clipboard" -theme ~/.config/rofi/spotlight.rasi -display-columns 2) || exit 0
+cliphist decode <<< "$choice" | wl-copy
+sleep 0.15
+hyprctl dispatch sendshortcut CTRL, V, activewindow > /dev/null

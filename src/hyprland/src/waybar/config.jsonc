@@ -8,16 +8,17 @@
 	"height": 24,
 	"spacing": 0,
 	"modules-left": [
+		"custom/lain",
+		"hyprland/window",
 		"hyprland/workspaces"
 	],
-	"modules-center": [
-		"hyprland/window"
-	],
+	"modules-center": [],
 	"modules-right": [
+		"group/hiddentray",
+		"hyprland/language",
 		"pulseaudio",
 		"network",
 		"clock",
-		"group/hiddentray",
 		"custom/power"
 	],
 	"group/hiddentray": {
@@ -58,8 +59,21 @@
 		}
 	},
 	"hyprland/window": {
-		"format": " {title} ",
-		"separate-outputs": true
+		"format": "{class}",
+		"separate-outputs": true,
+		"icon": false,
+		"rewrite": {
+			"": "Finder",
+			"kitty|systemapp": "Terminal",
+			"org.gnome.Nautilus": "Files",
+			"firefox": "Firefox",
+			"vesktop": "Discord",
+			"io.missioncenter.MissionCenter": "Activity Monitor",
+			"org.pulseaudio.pavucontrol": "Sound",
+			"nwg-look": "Appearance",
+			"mpv": "Movies",
+			"(.*)": "$1"
+		}
 	},
 	"pulseaudio": {
 		"format": "{icon}",
@@ -86,9 +100,10 @@
 			"car": ""
 		},
 		"scroll-step": 1,
-		"on-click-right": "easyeffects",
+		"on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
 		"max-volume": 150,
-		"format-alt": "{icon} {volume}%"
+		"format-alt": "{icon} {volume}%",
+		"on-click": "pavucontrol"
 	},
 	"network": {
 		"family": "ipv4",
@@ -109,8 +124,11 @@
 		"format-alt": "{icon} {signalStrength}%"
 	},
 	"clock": {
+		"format": "{:%a %d %b  %H:%M}",
+		"format-alt": "{:%A %d %B %Y  %H:%M:%S}",
+		"interval": 1,
 		"tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-		"format-alt": "{:%Y-%m-%d}"
+		"on-click-right": "dunstctl history-pop"
 	},
 	"temperature": {
 		"thermal-zone": 2,
@@ -143,13 +161,13 @@
 			"▇",
 			"█"
 		],
-		"on-click-right": "hyprsysteminfo"
+		"on-click-right": "missioncenter"
 	},
 	"memory": {
 		"format": "",
 		"tooltip": true,
 		"tooltip-format": "{used:0.1f}/{total}GiB\t[{percentage}%]\n{swapUsed:0.1f}/{swapTotal}GiB\t[{swapPercentage}%]",
-		"on-click-right": "missioncontrol"
+		"on-click-right": "missioncenter"
 	},
 	"tray": {
 		"icon-size": 16,
@@ -161,5 +179,17 @@
 		"format": " ",
 		"tooltip": false,
 		"on-click": "wlogout"
+	},
+	"custom/lain": {
+		"format": " ",
+		"tooltip": false,
+		"on-click": "~/.config/hypr/scripts/lain-menu"
+	},
+	"hyprland/language": {
+		"format": "{}",
+		"format-en": "EN",
+		"format-ar": "AR",
+		"on-click": "hyprctl switchxkblayout all next",
+		"tooltip": false
 	}
 }

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# app-switcher daemon | next | prev | grave | commit | cancel | quit
+# Starts the ⌘Tab switcher (app-switcher.py) or sends it one command from a key binding.
+if [ "${1:-daemon}" == "daemon" ]; then
+	# gtk4-layer-shell has to load before libwayland-client when used from Python
+	exec env LD_PRELOAD=/usr/lib/libgtk4-layer-shell.so python3 "$(dirname "$0")/app-switcher.py"
+fi
+printf '%s' "$1" | socat -t 1 - "UNIX-CONNECT:$XDG_RUNTIME_DIR/hyprlain-switcher.sock" 2> /dev/null

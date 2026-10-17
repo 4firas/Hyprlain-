@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# ⌥⌘Esc: Force Quit Applications. Pick an app, confirm, and all of its processes get SIGKILL.
+pkill -x rofi && exit 0
+
+# The app's desktop entry, found by file name or StartupWMClass
+desktop_entry() {
+	local dir file
+	for dir in "$HOME/.local/share/applications" /usr/share/applications; do
+		file=$(find "$dir" -maxdepth 1 -iname "$1.desktop" -print -quit 2> /dev/null)
+		[ -n "$file" ] || file=$(grep -lix "StartupWMClass=$1" "$dir"/*.desktop 2> /dev/null | head -n 1)
+		[ -n "$file" ] && echo "$file" && return
+	done
+}
+
+names=() icons=() pids=()
+while IFS=$'\t' read -r class pidlist; do
+	file=$(desktop_entry "$class")
+	name="" icon=""
+	if [ -n "$file" ]; then
+		name=$(sed -n 's/^Name=//p' "$file" | head -n 1)
+		icon=$(sed -n 's/^Icon=//p' "$file" | head -n 1)
+	fi
+	names+=("${name:-$class}") icons+=("${icon:-$class}") pids+=("$pidlist")
+done < <(hyprctl clients -j | jq -r '[.[] | select(.mapped and .pid > 0)] | group_by(.class)[] |
+	"\(.[0].class)\t\([.[].pid] | unique | map(tostring) | join(" "))"')
+[ ${#names[@]} -eq 0 ] && exit 0
+
+index=$(for i in "${!names[@]}"; do printf '%s\0icon\x1f%s\n' "${names[i]}" "${icons[i]}"; done |
+	rofi -dmenu -i -p "Force Quit" -no-custom -format i -theme ~/.config/rofi/spotlight.rasi \
+		-theme-str 'entry { placeholder: "Search Applications"; }') || exit 0
+[[ "$index" =~ ^[0-9]+$ ]] || exit 0
+
+"$(dirname "$0")/confirm" "Do you want to force “${names[index]}” to quit? You will lose any unsaved changes." "Force Quit" &&
+	kill -KILL ${pids[index]}

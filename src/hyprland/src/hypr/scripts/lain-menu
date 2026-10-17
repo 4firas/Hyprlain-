@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# The menu behind the Lain logo in the menu bar, like the Apple menu.
+# `lain-menu logout|restart|shutdown` goes straight to that confirmation.
+script="$HOME/.config/hypr/scripts"
+
+case "$1" in
+	logout) "$script/confirm" "Are you sure you want to quit all applications and log out now?" "Log Out" && hyprctl dispatch exit ;;
+	restart) "$script/confirm" "Are you sure you want to restart your computer now?" "Restart" && systemctl reboot ;;
+	shutdown) "$script/confirm" "Are you sure you want to shut down your computer now?" "Shut Down" && systemctl poweroff ;;
+esac
+[ -n "$1" ] && exit 0
+
+pkill -x rofi && exit 0
+# Label on the left, its shortcut dimmed in a right-hand column (printf pads bytes, not characters)
+item() { printf '%s%*s<span alpha="50%%">%s</span>\n' "$1" $((19 - ${#1})) "" "$2"; }
+choice=$({
+	item "About This Lain"
+	item "Activity Monitor"
+	item "Sound…"
+	item "Appearance…"
+	item "Force Quit…" "⌥⌘⎋"
+	item "Restart…"
+	item "Shut Down…"
+	item "Lock Screen"
+	item "Log Out $USER…"
+} | rofi -dmenu -i -p "" -no-custom -markup-rows -theme ~/.config/rofi/spotlight.rasi \
+	-theme-str 'window { location: north west; anchor: north west; x-offset: 8px; y-offset: 36px; width: 310px; }
+		inputbar { enabled: false; } listview { lines: 9; } element { padding: 6px 12px; } element-icon { enabled: false; }') || exit 0
+
+case "$choice" in
+	"About This Lain"*) kitty --class systemapp --hold -e neofetch ;;
+	"Activity Monitor"*) missioncenter ;;
+	"Sound"*) pavucontrol ;;
+	"Appearance"*) nwg-look ;;
+	"Force Quit"*) "$script/force-quit" ;;
+	"Restart"*) "$0" restart ;;
+	"Shut Down"*) "$0" shutdown ;;
+	"Lock Screen"*) loginctl lock-session ;;
+	"Log Out"*) "$0" logout ;;
+esac

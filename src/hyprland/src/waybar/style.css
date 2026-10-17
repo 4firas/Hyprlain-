@@ -85,3 +85,38 @@ tooltip *,
 	-gtk-icon-effect: highlight;
 	background-color: @foresecondary;
 }
+/* --- Mac-style menu bar: Lain menu, app name, input source --- */
+#custom-lain {
+	min-width: 16px;
+	margin: 0px 8px 0px 8px;
+	background-image: url("../assets/media/imgs/icons/favicon_32px.png");
+	background-size: 16px 16px;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+#window {
+	padding: 0px 12px 0px 4px;
+	color: @foreprimary;
+}
+
+window#waybar.empty #window {
+	padding: 0px;
+}
+
+#workspaces button {
+	color: @forequaternary;
+}
+
+#workspaces button.active {
+	color: @highprimary;
+}
+
+#language {
+	padding: 0px 10px 0px 4px;
+	color: @foreprimary;
+}
+
+#clock {
+	padding: 0px 8px 0px 4px;
+}

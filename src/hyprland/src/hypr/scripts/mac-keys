@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Keeps ⌘ shortcuts Mac-like everywhere: regular apps get them translated to Ctrl
+# (keys-apps.conf), terminals receive ⌘ and ⌥ untouched so they can handle them
+# themselves. Follows the focused window and switches to the mac-terminal submap
+# while a terminal has focus.
+TERMINALS='^(kitty|systemapp|cheatsheet|foot|Alacritty|com.mitchellh.ghostty|org.wezfurlong.wezterm)$'
+current=""
+
+apply() {
+	local mode=reset
+	[[ "$1" =~ $TERMINALS ]] && mode=mac-terminal
+	if [ "$mode" != "$current" ]; then
+		hyprctl dispatch submap "$mode" > /dev/null
+		current=$mode
+	fi
+}
+
+socket="$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
+while [ -S "$socket" ]; do
+	current=""
+	apply "$(hyprctl activewindow -j | jq -r '.class // ""')"
+	socat -U - "UNIX-CONNECT:$socket" | while IFS= read -r event; do
+		case "$event" in
+			activewindow\>\>*)
+				class=${event#activewindow>>}
+				apply "${class%%,*}"
+				;;
+		esac
+	done
+	# Hyprland restarted or the socket went away; reconnect
+	sleep 1
+done

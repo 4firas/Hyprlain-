@@ -28,13 +28,17 @@ MONITOR=$(grep -m1 -h '^monitor *=' "$VMCONF" "${HOME}/.config/hypr.hyprlainbak/
 	echo "cursor {"
 	echo "	no_hardware_cursors = true"
 	echo "}"
-	if [ "$ARCH" == "aarch64" ]; then
-		# aarch64 VMs run on Apple Silicon Macs, where macOS keeps Command for itself
-		echo "# Left Option acts as Super, since macOS keeps the Command key"
-		echo "input {"
-		echo "	kb_options = altwin:swap_lalt_lwin"
-		echo "}"
-	fi
+	# While UTM captures input, the host's pointer movement (already accelerated by macOS)
+	# arrives through a relative USB mouse in host points; scale it to the guest's pixels,
+	# about 1.75 for 2560 pixels across a 1470-point MacBook display, without accelerating again
+	echo "# Captured pointer: linear, and as fast as on the host"
+	echo "device {"
+	echo "	name = qemu-qemu-usb-mouse"
+	echo "	accel_profile = flat"
+	echo "	sensitivity = 0.75"
+	echo "}"
+	# Clipboard shared with the host through the SPICE agent
+	echo "exec-once = ~/.config/hypr/scripts/vm-clipboard"
 	if sudo dmesg 2>/dev/null | grep -q '+virgl'; then
 		# virgl over UTM/QEMU's GLES host advertises only OpenGL 2.1, so apps needing 3.3
 		# core (kitty, mpv) fail to start; Hyprland itself renders through GLES and is unaffected
@@ -64,7 +68,48 @@ fi
 sudo install -d /etc/systemd/sleep.conf.d
 printf '[Sleep]\nAllowSuspend=no\nAllowHibernation=no\nAllowHybridSleep=no\nAllowSuspendThenHibernate=no\n' | sudo tee /etc/systemd/sleep.conf.d/10-hyprlain-vm.conf > /dev/null
 
+# UTM's QEMU on Apple silicon hangs when the guest resets itself, so a reboot never comes
+# back. Keep the installed kernel loaded for kexec: systemctl reboot then starts it directly
+# without going through the hypervisor reset. A pacman hook reloads it after kernel updates.
+if [ "$(uname -m)" == "aarch64" ] && [ -f /boot/Image ]; then
+	getpkg kexec kexec-tools
+	sudo tee /etc/systemd/system/hyprlain-kexec-load.service > /dev/null <<- 'EOF'
+		[Unit]
+		Description=Load the installed kernel so reboots skip the hypervisor reset (Hyprlain vm module)
+		ConditionPathExists=/boot/Image
+		ConditionPathExists=/boot/initramfs-linux.img
+
+		[Service]
+		Type=oneshot
+		RemainAfterExit=yes
+		ExecStart=/usr/bin/kexec --load /boot/Image --initrd=/boot/initramfs-linux.img --reuse-cmdline
+
+		[Install]
+		WantedBy=multi-user.target
+	EOF
+	sudo install -d /etc/pacman.d/hooks
+	# Runs after 90-mkinitcpio-install.hook has rebuilt the initramfs
+	sudo tee /etc/pacman.d/hooks/95-hyprlain-kexec.hook > /dev/null <<- 'EOF'
+		[Trigger]
+		Type = Path
+		Operation = Install
+		Operation = Upgrade
+		Target = boot/Image
+		Target = usr/lib/modules/*/vmlinuz
+		Target = usr/lib/initcpio/*
+
+		[Action]
+		Description = Reloading the kernel for kexec reboots...
+		When = PostTransaction
+		Exec = /usr/bin/systemctl restart hyprlain-kexec-load.service
+	EOF
+	sudo systemctl daemon-reload
+	sudo systemctl enable --now hyprlain-kexec-load.service
+fi
+
 getpkg spice-vdagent
+getpkg xclip
+getpkg clipnotify
 sudo systemctl enable spice-vdagentd.service 2>/dev/null || true
 
 echo -e "${GREEN}VM tweaks applied (${VMCONF}).${NOCOLOR}"

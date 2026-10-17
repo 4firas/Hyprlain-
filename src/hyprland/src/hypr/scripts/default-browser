@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Makes the first installed browser the default for links (Chrome has no aarch64 build).
+for desktop in google-chrome.desktop chromium.desktop firefox.desktop; do
+	if [ -f "/usr/share/applications/$desktop" ]; then
+		[ "$(xdg-settings get default-web-browser 2>/dev/null)" == "$desktop" ] ||
+			xdg-settings set default-web-browser "$desktop"
+		exit 0
+	fi
+done

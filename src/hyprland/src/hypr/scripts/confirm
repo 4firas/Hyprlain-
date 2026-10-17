@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# confirm "message" "Action": a small macOS-style alert. Succeeds only if Action is picked.
+message=$(sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' <<< "$1")
+answer=$(printf '%s\nCancel\n' "$2" | rofi -dmenu -i -p "" -no-custom -mesg "$message" \
+	-theme ~/.config/rofi/spotlight.rasi \
+	-theme-str 'window { width: 460px; } mainbox { children: [message, listview]; } listview { lines: 2; }
+		element-icon { enabled: false; } textbox { text-color: @highprimary; }') || exit 1
+[ "$answer" == "$2" ]

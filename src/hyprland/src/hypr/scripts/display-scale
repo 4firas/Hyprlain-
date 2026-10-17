@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# display-scale up|down
+# ⌥⌘= / ⌥⌘-: make everything larger or smaller on the focused display, like
+# Displays → "Larger Text / More Space". In a VM the choice is kept in vm.conf.
+steps=(1 1.25 1.5 1.6 2)
+monitor=$(hyprctl monitors -j | jq -c '.[] | select(.focused)')
+name=$(jq -r .name <<< "$monitor")
+mode=$(jq -r '"\(.width)x\(.height)@\(.refreshRate | floor)"' <<< "$monitor")
+current=$(jq -r .scale <<< "$monitor")
+
+index=0
+for i in "${!steps[@]}"; do
+	awk -v a="${steps[$i]}" -v b="$current" 'BEGIN { exit !(a <= b + 0.01) }' && index=$i
+done
+case "$1" in
+	up) ((index < ${#steps[@]} - 1)) && ((index++)) ;;
+	down) ((index > 0)) && ((index--)) ;;
+	*) echo "usage: display-scale up|down" >&2; exit 2 ;;
+esac
+scale=${steps[$index]}
+
+hyprctl keyword monitor "$name, $mode, auto, $scale" > /dev/null
+notify-send -a Displays -t 1500 "Display size" "${scale}x"
+
+vmconf="$HOME/.config/hypr/vm.conf"
+if [ -f "$vmconf" ] && grep -q "^monitor = $name," "$vmconf"; then
+	sed -i "s|^monitor = $name, .*|monitor = $name, $mode, 0x0, $scale|" "$vmconf"
+fi

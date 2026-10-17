@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# dock start|toggle
+# The Dock along the bottom edge (nwg-dock-hyprland). It hides itself and slides up when
+# the pointer reaches the bottom of the screen; ⌥⌘D switches between auto-hide and
+# always shown, like on a Mac. Pinned apps: right-click an icon → Pin.
+state="$HOME/.cache/hyprlain/dock-always-shown"
+command -v nwg-dock-hyprland > /dev/null || exit 0
+pinned="$HOME/.cache/nwg-dock-pinned"
+# First run: start with the apps a Mac Dock would show
+[ -f "$pinned" ] || printf '%s\n' firefox org.gnome.Nautilus kitty vesktop > "$pinned"
+
+launch() {
+	local args=(-p bottom -i 44 -mb 6 -lp start -c "rofi -show drun -theme $HOME/.config/rofi/spotlight.rasi"
+		-ico "$HOME/.config/assets/media/imgs/icons/favicon_64px.png" -iw special)
+	if [ -f "$state" ]; then
+		args+=(-x)
+	else
+		args+=(-d -hd 0)
+	fi
+	pkill -x nwg-dock-hyprla
+	setsid nwg-dock-hyprland "${args[@]}" > /dev/null 2>&1 &
+}
+
+case "$1" in
+	start) launch ;;
+	toggle)
+		mkdir -p "$(dirname "$state")"
+		if [ -f "$state" ]; then rm -f "$state"; else touch "$state"; fi
+		launch
+		;;
+	*) echo "usage: dock start|toggle" >&2; exit 2 ;;
+esac

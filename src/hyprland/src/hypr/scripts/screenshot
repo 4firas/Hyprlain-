@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# screenshot screen|area|window [copy]
+# Mac-style screenshots: saved to ~/Pictures/Screenshots and copied to the clipboard,
+# or with "copy" only copied. Esc while picking an area cancels.
+mode=${1:-area}
+dir="$HOME/Pictures/Screenshots"
+file="$dir/Screenshot $(date '+%Y-%m-%d at %H.%M.%S').png"
+tmp=$(mktemp --suffix=.png)
+trap 'rm -f "$tmp"' EXIT
+
+case "$mode" in
+	screen)
+		output=$(hyprctl monitors -j | jq -r '.[] | select(.focused) | .name')
+		grim -o "$output" "$tmp" || exit 1
+		;;
+	area)
+		geometry=$(slurp -d -b 00000088 -c ce7688ff -s 00000000 -w 2) || exit 0
+		grim -g "$geometry" "$tmp" || exit 1
+		;;
+	window)
+		geometry=$(hyprctl activewindow -j | jq -r 'select(.at) | "\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')
+		[ -z "$geometry" ] && exit 0
+		grim -g "$geometry" "$tmp" || exit 1
+		;;
+	*)
+		echo "usage: screenshot screen|area|window [copy]" >&2
+		exit 2
+		;;
+esac
+
+wl-copy --type image/png < "$tmp"
+"$HOME/.config/hypr/scripts/beep" > /dev/null 2>&1 &
+if [ "$2" == "copy" ]; then
+	notify-send -a Screenshot -i "$tmp" "Screenshot copied" "Paste it with ⌘V"
+	sleep 1
+else
+	mkdir -p "$dir"
+	cp "$tmp" "$file"
+	notify-send -a Screenshot -i "$file" "Screenshot saved" "${file/#$HOME/\~}"
+fi

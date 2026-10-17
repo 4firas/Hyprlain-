@@ -12,5 +12,6 @@ downdependencies "${GITSRC}/pacpkgs.lst" "${GITSRC}/aurpkgs.lst"
 
 substitute "$BAKORDEL" "${HOME}/.config/rofi/themes/Hyprlain.rasi" "${GITSRC}/Hyprlain.rasi"
 substitute "$BAKORDEL" "${HOME}/.config/rofi/config.rasi" "${GITSRC}/config.rasi"
+substitute "$BAKORDEL" "${HOME}/.config/rofi/spotlight.rasi" "${GITSRC}/spotlight.rasi"
 
 echo -e "${GREEN}Rofi Hyprlain theme installed successfully.${NOCOLOR}"
