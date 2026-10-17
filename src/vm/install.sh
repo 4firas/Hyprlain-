@@ -59,6 +59,11 @@ if [ -f "$HYPRCONF" ] && ! grep -q 'hypr/vm.conf' "$HYPRCONF"; then
 	echo 'source = ~/.config/hypr/vm.conf' | sudo tee -a "$HYPRCONF" > /dev/null
 fi
 
+# hypridle suspends after 30 idle minutes; a suspended guest drops off the network and
+# the hypervisor window doesn't wake it reliably. Locking and screen-off still apply.
+sudo install -d /etc/systemd/sleep.conf.d
+printf '[Sleep]\nAllowSuspend=no\nAllowHibernation=no\nAllowHybridSleep=no\nAllowSuspendThenHibernate=no\n' | sudo tee /etc/systemd/sleep.conf.d/10-hyprlain-vm.conf > /dev/null
+
 getpkg spice-vdagent
 sudo systemctl enable spice-vdagentd.service 2>/dev/null || true
 
