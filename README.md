@@ -72,7 +72,7 @@ The script automatically sets up:
 - **Desktop**: Hyprland + Waybar menu bar + Rofi Spotlight + nwg-dock Dock + Dunst, with a ⌘Tab switcher and Mission Control
 - **Terminal**: Kitty with Oh-My-Zsh
 - **Login Screen**: Custom SDDM theme
-- **Boot Screen**: Lain GRUB theme
+- **Boot Screen**: Lain GRUB theme (where GRUB is the bootloader)
 - **Theming**: Full GTK + Qt dark theme, custom icons, custom cursors
 - **Apps**: Firefox, Nautilus, Spotify (with Spicetify), Vesktop (Discord)
 - **Audio**: PipeWire + PipeWire-JACK (auto-resolves jack2 conflicts)
